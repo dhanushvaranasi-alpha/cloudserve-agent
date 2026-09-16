@@ -12,8 +12,8 @@ load_dotenv()
 @dataclass(frozen=True)
 class Settings:
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
-    model_name: str = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
-    classifier_model: str = os.getenv("CLASSIFIER_MODEL", "llama-3.1-8b-instant")
+    model_name: str = os.getenv("MODEL_NAME", "openai/gpt-oss-120b")
+    classifier_model: str = os.getenv("CLASSIFIER_MODEL", "openai/gpt-oss-20b")
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
     chroma_path: str = os.getenv("CHROMA_PATH", "./storage/chroma")

@@ -124,8 +124,22 @@ grounding an answer in something irrelevant.
 |---|---|---|---|
 | Dependency pins | `requirements.txt` template pins very old releases (`chromadb==0.3.21`, `langchain==0.1.0`) that no longer install cleanly | Current stable pins (`chromadb==0.5.20`, etc.) | The template versions fail to install; current versions are still 100% free/open source, satisfying the actual constraint |
 | Orchestration | LangChain + LangGraph named as an option | Plain Python control flow in `src/pipeline.py` | A 6-step linear-with-branches pipeline doesn't need a graph orchestration framework; plain functions are easier to unit-test with fakes and easier to explain line-by-line on the video, which matters more at this scope |
-| Model provider | OpenRouter or Groq | Groq (`llama-3.3-70b-versatile` for generation, `llama-3.1-8b-instant` for classification) | Free tier, fast inference (relevant for the p95<3s latency target), OpenAI-compatible client |
+| Model provider | OpenRouter or Groq | Groq (`openai/gpt-oss-120b` for generation, `openai/gpt-oss-20b` for classification) | Free tier, fast inference (relevant for the p95<3s latency target), OpenAI-compatible client |
 | Decision log | PostgreSQL or SQLite | SQLite | Pack itself says "fine for the decision log at this scale" |
+
+Model IDs were revised mid-project: Groq deprecated and retired
+`llama-3.3-70b-versatile` and `llama-3.1-8b-instant` on 2026-08-16 (see
+[Groq's deprecation page](https://console.groq.com/docs/deprecations)),
+which surfaced as every call returning 404 and every ticket falling back
+to `unclear_request` / forced escalation -- the A11 graceful-degradation
+path working exactly as designed, just against a stale config. Groq's own
+migration guidance points to `openai/gpt-oss-120b` and `openai/gpt-oss-20b`
+respectively, both still free-tier; `config.py` and `.env.example` were
+updated accordingly. This is the exact scenario R-06 in `governance.md`
+names ("Model provider becomes unavailable") -- the retry/backoff and
+`UnavailableChatClient` fallback it credits are what kept the run from
+crashing while the config was still wrong, it just took a stale model ID
+rather than an outage to trigger it.
 
 ## 6. Reliability (A11)
 
