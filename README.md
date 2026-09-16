@@ -28,8 +28,8 @@ cp .env.example .env
 # edit .env and set GROQ_API_KEY=<your key>
 ```
 
-The first run downloads the `all-MiniLM-L6-v2` embedding model (a few
-hundred MB, one-time, cached under `~/.cache` afterward) and indexes the 29
+The first run downloads the `all-MiniLM-L6-v2` embedding model (~90MB,
+one-time, cached under `~/.cache` afterward) and indexes the 29
 documentation articles into a local Chroma store under `storage/chroma/` —
 this needs internet access once, even though everything after that runs
 locally.
