@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --cov=src --cov=evaluation --cov-report=term-missing
+        env:
+          # CI never has a real key: tests use FakeChatClient/FakeRetriever
+          # and must pass with no network access at all -- that's the point.
+          GROQ_API_KEY: ""
+
+      - name: Search for committed credentials
+        run: |
+          if grep -rEn "gsk_[A-Za-z0-9]{20,}" --include="*.py" --include="*.md" --include="*.txt" .; then
+            echo "Possible Groq API key found in source. Failing build."
+            exit 1
+          fi
+          echo "No obvious credentials found."
