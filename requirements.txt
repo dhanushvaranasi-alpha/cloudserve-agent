@@ -30,7 +30,13 @@ chromadb==1.5.9
 sentence-transformers==3.2.1
 
 # Data / eval
-numpy==1.26.4
+numpy==2.1.3
+# Pinned to a 2.x release: langchain-chroma requires numpy>=2.1.0 on
+# Python 3.13 specifically (pip's resolver backtracks for a long time
+# and then fails outright against the old numpy==1.26.4 pin from master's
+# requirements.txt). 2.1.3 is still compatible with scikit-learn==1.5.2,
+# sentence-transformers==3.2.1 and Python 3.10-3.13, so one pin covers
+# every environment this project runs in.
 scikit-learn==1.5.2
 
 # Web framework
