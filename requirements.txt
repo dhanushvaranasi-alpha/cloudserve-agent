@@ -1,19 +1,32 @@
 # Pinned dependencies for the CloudServe support system.
-# Deviates from the pack's template requirements.txt (which pinned very old
-# releases, e.g. chromadb==0.3.21, langchain==0.1.0, that no longer install
-# cleanly). This is a documented engineering decision -- see docs/architecture.md
-# "Stack decisions" -- everything below is still free/open source.
+#
+# This branch (langchain-langgraph-migration) replaces the plain-Python
+# control flow and the direct groq/chromadb clients with LangChain and
+# LangGraph. See docs/architecture.md "Stack decisions" for why the
+# original branch (master) chose plain Python instead, and
+# docs/PRD_REVISION_LOG.md for why this branch exists anyway.
+#
+# The original template pinned very old releases (e.g. chromadb==0.3.21,
+# langchain==0.1.0) that no longer install cleanly; everything below is a
+# current, freely installable version instead.
 
-# LLM access (Groq free tier, OpenAI-compatible)
-groq==0.11.0
-# Pinned explicitly: groq==0.11.0 calls httpx with a `proxies` argument that
-# httpx 0.28+ removed, causing "TypeError: Client.__init__() got an
-# unexpected keyword argument 'proxies'" at Groq() construction. Confirmed
-# and fixed by pinning httpx below 0.28.
+# Orchestration
+langgraph==1.2.11
+langchain==1.4.1
+langchain-core==1.6.3
+
+# LLM access (Groq free tier, OpenAI-compatible), via langchain-groq
+langchain-groq==1.1.3
+groq==0.37.1
 httpx==0.27.2
+# Pinned: older groq releases call httpx with a `proxies` argument that
+# httpx 0.28+ removed. Confirmed still required with the newer groq pulled
+# in by langchain-groq's own dependency resolution.
 
-# Vector store & embeddings
-chromadb==0.5.20
+# Vector store & embeddings, via langchain-chroma / langchain-huggingface
+langchain-chroma==1.1.0
+langchain-huggingface==1.2.2
+chromadb==1.5.9
 sentence-transformers==3.2.1
 
 # Data / eval

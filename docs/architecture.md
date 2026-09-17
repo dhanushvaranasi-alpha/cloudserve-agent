@@ -127,6 +127,22 @@ grounding an answer in something irrelevant.
 | Model provider | OpenRouter or Groq | Groq (`openai/gpt-oss-120b` for generation, `openai/gpt-oss-20b` for classification) | Free tier, fast inference (relevant for the p95<3s latency target), OpenAI-compatible client |
 | Decision log | PostgreSQL or SQLite | SQLite | Pack itself says "fine for the decision log at this scale" |
 
+**Branch note (`langchain-langgraph-migration`):** the Orchestration row
+above describes `master`. This branch is the other side of that decision,
+built to show what changes if LangChain and LangGraph are used instead:
+`src/pipeline.py` is a `langgraph.graph.StateGraph` (one node per pipeline
+stage, conditional edges for the always-escalate / low-confidence /
+no-grounding / declined / guardrail-blocked branches), `src/llm_client.py`
+calls Groq through `langchain_groq.ChatGroq` instead of the raw `groq` SDK,
+and `src/retrieve/retriever.py` uses `langchain_chroma.Chroma` and
+`langchain_huggingface.HuggingFaceEmbeddings` instead of talking to
+`chromadb` directly. The `ChatClient` protocol, the `Retriever` class's
+public methods, and every component function's signature (`classify`,
+`generate`, `route`, `run_guardrails`) are unchanged, so the reasoning in
+the Orchestration row's "Why" column still holds for `master`: this branch
+demonstrates the alternative rather than replacing the original decision.
+All 53 existing tests pass unchanged against this branch.
+
 Model IDs were revised mid-project: Groq deprecated and retired
 `llama-3.3-70b-versatile` and `llama-3.1-8b-instant` on 2026-08-16 (see
 [Groq's deprecation page](https://console.groq.com/docs/deprecations)),

@@ -4,6 +4,15 @@ Thin wrapper around the Groq client.
 Every call to a model goes through here so that (a) retry/backoff is applied
 once, in one place, satisfying A11 (provider timeout / rate limit handling),
 and (b) tests can substitute a fake client instead of hitting the network.
+
+LangChain migration note: the real client now goes through
+langchain_groq.ChatGroq instead of calling the groq SDK directly. The public
+ChatClient protocol (chat(model, system, user, temperature, json_mode) -> str)
+is unchanged, so classify.py, generate.py, pipeline.py and every test that
+uses FakeChatClient needed no changes -- only what is inside GroqChatClient
+moved. Retry stays on our own tenacity decorator (set max_retries=0 on
+ChatGroq itself) so backoff behaviour, and what counts as a ProviderError,
+is unchanged from before the migration.
 """
 from __future__ import annotations
 
@@ -29,17 +38,22 @@ class ChatClient(Protocol):
 
 class GroqChatClient:
     """Real client. Constructed lazily so importing this module never
-    requires network access or an API key (tests never touch this class)."""
+    requires network access or an API key (tests never touch this class).
+
+    Talks to Groq through langchain_groq.ChatGroq rather than the raw groq
+    SDK. A fresh ChatGroq is built per call because model name and json_mode
+    can differ between calls (classify() and generate() use different
+    models), and langchain_groq's own client construction is cheap -- it
+    does not open a connection until .invoke() is called.
+    """
 
     def __init__(self, api_key: Optional[str] = None):
-        from groq import Groq  # local import: keep it out of the hot import path
-
         key = api_key or SETTINGS.groq_api_key
         if not key:
             raise ProviderError(
                 "GROQ_API_KEY is not set. Copy .env.example to .env and fill it in."
             )
-        self._client = Groq(api_key=key)
+        self._api_key = key
 
     @retry(
         reraise=True,
@@ -49,19 +63,25 @@ class GroqChatClient:
     )
     def chat(self, *, model: str, system: str, user: str, temperature: float = 0.0,
               json_mode: bool = False) -> str:
+        from langchain_core.messages import HumanMessage, SystemMessage
+        from langchain_groq import ChatGroq
+
         try:
-            kwargs: dict[str, Any] = dict(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-                temperature=temperature,
-            )
+            model_kwargs: dict[str, Any] = {}
             if json_mode:
-                kwargs["response_format"] = {"type": "json_object"}
-            completion = self._client.chat.completions.create(**kwargs)
-            return completion.choices[0].message.content or ""
+                model_kwargs["response_format"] = {"type": "json_object"}
+            llm = ChatGroq(
+                model=model,
+                temperature=temperature,
+                groq_api_key=self._api_key,
+                model_kwargs=model_kwargs,
+                max_retries=0,  # our tenacity decorator owns retry/backoff, not langchain's
+            )
+            response = llm.invoke(
+                [SystemMessage(content=system), HumanMessage(content=user)]
+            )
+            content = response.content
+            return content if isinstance(content, str) else str(content or "")
         except Exception as exc:  # noqa: BLE001 -- provider errors are all "unavailable" to us
             logger.warning("Groq call failed: %s", exc)
             raise ProviderError(str(exc)) from exc

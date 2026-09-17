@@ -13,6 +13,14 @@ character count. Dataset_Guide.docx explicitly warns that "splitting inside
 a resolution sequence tends to produce passages that retrieve well but read
 as incomplete" -- heading-aware chunking keeps a numbered resolution list
 intact as one chunk instead of severing it mid-sequence.
+
+LangChain migration note: the vector store and embeddings now go through
+langchain_chroma.Chroma and langchain_huggingface.HuggingFaceEmbeddings
+instead of talking to chromadb directly. The underlying store is still a
+chromadb.PersistentClient at the same CHROMA_PATH, so an index built before
+this migration is read the same way after it -- confirmed the wrapper
+returns the identical raw cosine distance chromadb itself returns, so the
+score-conversion formula below (distance -> similarity) is unchanged.
 """
 from __future__ import annotations
 
@@ -22,7 +30,8 @@ import re
 from pathlib import Path
 
 import chromadb
-from chromadb.utils import embedding_functions
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from src.config import SETTINGS
 from src.schemas import RetrievalResult, RetrievedPassage
@@ -46,26 +55,30 @@ class Retriever:
         self._path = chroma_path or SETTINGS.chroma_path
         Path(self._path).mkdir(parents=True, exist_ok=True)
         self._client = chromadb.PersistentClient(path=self._path)
-        self._embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=SETTINGS.embedding_model
-        )
-        self._collection = self._client.get_or_create_collection(
-            name=collection_name, embedding_function=self._embed_fn
+        self._embeddings = HuggingFaceEmbeddings(model_name=SETTINGS.embedding_model)
+        self._collection_name = collection_name
+        self._vectorstore = Chroma(
+            client=self._client,
+            collection_name=collection_name,
+            embedding_function=self._embeddings,
         )
 
+    def _count(self) -> int:
+        return len(self._vectorstore.get(include=[])["ids"])
+
     def is_indexed(self) -> bool:
-        return self._collection.count() > 0
+        return self._count() > 0
 
     def index_documentation(self, documentation_path: str, force: bool = False) -> int:
         """Build the vector index from documentation.json. Idempotent unless force=True."""
         if self.is_indexed() and not force:
-            logger.info("Retriever already indexed (%d chunks); skipping.", self._collection.count())
-            return self._collection.count()
+            logger.info("Retriever already indexed (%d chunks); skipping.", self._count())
+            return self._count()
 
         if force:
-            existing = self._collection.get()
-            if existing["ids"]:
-                self._collection.delete(ids=existing["ids"])
+            existing_ids = self._vectorstore.get(include=[])["ids"]
+            if existing_ids:
+                self._vectorstore.delete(ids=existing_ids)
 
         docs = json.loads(Path(documentation_path).read_text())
         ids, texts, metadatas = [], [], []
@@ -86,7 +99,7 @@ class Retriever:
             logger.warning("No chunks produced from %s", documentation_path)
             return 0
 
-        self._collection.add(ids=ids, documents=texts, metadatas=metadatas)
+        self._vectorstore.add_texts(texts=texts, metadatas=metadatas, ids=ids)
         logger.info("Indexed %d chunks from %d documents.", len(ids), len(docs))
         return len(ids)
 
@@ -98,25 +111,24 @@ class Retriever:
         if not query.strip() or not self.is_indexed():
             return RetrievalResult(passages=[], query=query)
 
-        results = self._collection.query(query_texts=[query], n_results=top_k)
+        results = self._vectorstore.similarity_search_with_score(query, k=top_k)
         passages: list[RetrievedPassage] = []
-        ids = results.get("ids", [[]])[0]
-        docs = results.get("documents", [[]])[0]
-        metas = results.get("metadatas", [[]])[0]
-        dists = results.get("distances", [[]])[0]
 
-        for _id, text, meta, dist in zip(ids, docs, metas, dists):
-            # Chroma's default distance is cosine distance in [0, 2]; convert
-            # to a similarity score in [0, 1] so the relevance threshold in
-            # .env (RETRIEVAL_MIN_SCORE) reads as "how relevant", not "how far".
+        for doc, dist in results:
+            # langchain_chroma.similarity_search_with_score returns the same
+            # raw cosine distance ([0, 2]) chromadb's own .query() returns
+            # (confirmed directly against a raw chromadb query on the same
+            # collection) -- so this conversion to a [0, 1] similarity score
+            # is unchanged from the pre-migration code.
             score = max(0.0, 1.0 - (dist / 2.0))
             if score < min_score:
                 continue
+            meta = doc.metadata or {}
             passages.append(
                 RetrievedPassage(
-                    doc_id=meta["doc_id"],
+                    doc_id=meta.get("doc_id", ""),
                     title=meta.get("title", ""),
-                    chunk_text=text,
+                    chunk_text=doc.page_content,
                     score=round(score, 4),
                 )
             )
