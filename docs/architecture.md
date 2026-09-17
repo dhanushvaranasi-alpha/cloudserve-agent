@@ -1,4 +1,4 @@
-# Architecture — CloudServe support automation system
+# Architecture: CloudServe support automation system
 
 ## 1. High-level view: six components, three cross-cutting concerns
 
@@ -51,7 +51,7 @@ connection: `ChatClient` and the retriever are both structural interfaces
 (`FakeChatClient`, `FakeRetriever` in the same modules), so
 `tests/test_pipeline.py` exercises real classify → route → validate logic
 with zero external calls. The only thing that changes to go from "tests"
-to "the real system" is which concrete object gets passed in — nothing in
+to "the real system" is which concrete object gets passed in, nothing in
 `src/pipeline.py` changes.
 
 ## 3. How the system decides (routing)
@@ -99,22 +99,22 @@ until `evaluation/harness.py`'s calibration table (bins predicted confidence
 against observed accuracy, per `Evaluation_Framework.docx`) is run against
 real classifier output. Moving this number based on that table, and
 recording why, is exactly the kind of change the compulsory PRD revision
-(Stage 5) is for — it should not be tuned by feel before that data exists.
+(Stage 5) is for, it should not be tuned by feel before that data exists.
 
 ## 4. Retrieval: chunking strategy
 
 Documents are split on markdown headings (`##`/`###`) rather than by fixed
 character count. `Dataset_Guide.docx` warns explicitly that "splitting
 inside a resolution sequence tends to produce passages that retrieve well
-but read as incomplete" — heading-aware chunking keeps a numbered
+but read as incomplete", heading-aware chunking keeps a numbered
 resolution sequence intact as one retrievable unit instead of severing it.
 See `src/retrieve/retriever.py::_chunk_document`.
 
-Embeddings: `all-MiniLM-L6-v2` (per the pack's stack notes — small, fast,
+Embeddings: `all-MiniLM-L6-v2` (per the pack's stack notes, small, fast,
 adequate for a 29-document corpus). Relevance threshold
 (`RETRIEVAL_MIN_SCORE=0.35`) converts Chroma's cosine distance to a
 similarity score in `[0, 1]`, and retrieval returns *nothing* rather than
-a low-relevance passage when nothing clears it — required so the router's
+a low-relevance passage when nothing clears it, required so the router's
 "no grounding found → escalate" branch actually fires instead of silently
 grounding an answer in something irrelevant.
 
@@ -135,11 +135,11 @@ to `unclear_request` / forced escalation -- the A11 graceful-degradation
 path working exactly as designed, just against a stale config. Groq's own
 migration guidance points to `openai/gpt-oss-120b` and `openai/gpt-oss-20b`
 respectively, both still free-tier; `config.py` and `.env.example` were
-updated accordingly. This is the exact scenario R-06 in `governance.md`
-names ("Model provider becomes unavailable") -- the retry/backoff and
-`UnavailableChatClient` fallback it credits are what kept the run from
-crashing while the config was still wrong, it just took a stale model ID
-rather than an outage to trigger it.
+updated accordingly. This is the exact scenario R-06 in `governance.md` names ("Model provider
+becomes unavailable") -- the retry/backoff and `UnavailableChatClient`
+fallback it credits are what kept the run from crashing while the config
+was still wrong, it just took a stale model ID rather than an outage to
+trigger it.
 
 ## 6. Reliability (A11)
 
@@ -147,7 +147,7 @@ Every model call goes through `src/llm_client.py`, which wraps the Groq
 client in `tenacity` retry/backoff (3 attempts, exponential wait). If the
 provider is fully unavailable (bad key, network down, sustained failure),
 `get_default_client()` returns an `UnavailableChatClient` that raises
-immediately — which routes every ticket through the classifier's existing
+immediately, which routes every ticket through the classifier's existing
 fallback path (`unclear_request`, confidence 0.0, forced escalate) rather
 than crashing the harness. The same run that works with a live key also
 completes cleanly with no key at all; it just escalates everything, which
@@ -156,5 +156,5 @@ is the correct, safe behaviour for "provider unavailable," not a bug.
 ## 7. What's explicitly not built (see PRD §6 for the full list and why)
 
 A review/desk UI for Tier 2, non-English generation, auto-refreshing the
-documentation corpus, and any fine-tuned/custom model are out of scope —
+documentation corpus, and any fine-tuned/custom model are out of scope ,
 each is a deliberate v1 boundary, not an oversight.
