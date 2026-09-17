@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 480" role="img" aria-label="Flow diagram: four channels feed Ingest, which leads through Classify, Retrieve and Route. Route sends most tickets to Escalate, and confident well-grounded tickets on to Generate, Validate and finally to the customer, with a guardrail block also routing to Escalate. Classify and Generate call Groq; Retrieve calls Chroma; the main stages write to a SQLite decision log." xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToxYmQ5NzIyMS1hNjFlLTQ1N2QtOTczNC1kZTM4MWJiZWJlYWIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaD3FBfv33VYSiP+5Ob49yxEAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDphMDAxODdiYS0yODE3LTRiMWMtYTE2ZC1mMjQxNThmMTM1NzlscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNo74mhWX+L23hIHcCw2okCOAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggdEHV7q0RdiV8BSD0ly8wBMJBasgHeYBzfQLk08WKAOykZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaE3k2sswNs8wisv+5pmlbu4AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYILTqPlb+EKjSPh/6Sc//BkQqa/5fmNPOpPJodC1IVuAVZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQIKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjFiZDk3MjIxLWE2MWUtNDU3ZC05NzM0LWRlMzgxYmJlYmVhYi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjEwOWRkODI3LWU3YWItNDA4My05Y2UyLWEyNDczOTM1MjA5YXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCB0QdXurRF2JXwFIPSXLzAEwkFqyAd5gHN9AuTTxYoA7KJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg+4u7xLCEH5FjNVEFuA6Jpr4kzGCT8y9WsU9ZliqqCqSiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgggZniZApw+7OnrRot9sCHN5xPlcn/QIQheFtFvNR8Rb10Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQGB6PgX8PmtCa3FsM/V0OHi5TULIt9IwEO3YboQDegw9Wq1msbtnU2rUjTG7bR3SKcZmWJx/QxQD+OZYhgVkySU=</c2pa:manifest></metadata>
+  <defs>
+    <marker id="pf-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+    <style>
+      text { font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace; fill: #16202b; }
+      .label-title { font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif; font-weight: 600; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1360" height="480" fill="#ffffff"/>
+
+  <!-- channel boxes -->
+  <g font-size="11.5">
+    <g>
+      <rect x="20" y="40" width="130" height="34" rx="6" fill="#eef1f5" stroke="#c9d2dc"/>
+      <rect x="20" y="84" width="130" height="34" rx="6" fill="#eef1f5" stroke="#c9d2dc"/>
+      <rect x="20" y="128" width="130" height="34" rx="6" fill="#eef1f5" stroke="#c9d2dc"/>
+      <rect x="20" y="172" width="130" height="34" rx="6" fill="#eef1f5" stroke="#c9d2dc"/>
+    </g>
+    <text x="85" y="61" text-anchor="middle">Email</text>
+    <text x="85" y="105" text-anchor="middle">Chat</text>
+    <text x="85" y="149" text-anchor="middle">Phone transcript</text>
+    <text x="85" y="193" text-anchor="middle">Web form</text>
+  </g>
+
+  <!-- channel -> ingest connectors -->
+  <g stroke="#c9d2dc" fill="none" color="#c9d2dc">
+    <path d="M150,57 L200,122" marker-end="url(#pf-a1)"/>
+    <path d="M150,101 L200,122" marker-end="url(#pf-a1)"/>
+    <path d="M150,145 L200,122" marker-end="url(#pf-a1)"/>
+    <path d="M150,189 L200,122" marker-end="url(#pf-a1)"/>
+  </g>
+
+  <!-- main pipeline row: ingest, classify, retrieve, route -->
+  <g font-size="12.5">
+    <rect x="200" y="90" width="140" height="64" rx="8" fill="#ffffff" stroke="#16202b" stroke-width="1.3"/>
+    <text x="270" y="117" text-anchor="middle" class="label-title">Ingest</text>
+    <text x="270" y="134" text-anchor="middle" font-size="10.5" opacity="0.65">normalize ticket</text>
+
+    <rect x="390" y="90" width="140" height="64" rx="8" fill="#ffffff" stroke="#16202b" stroke-width="1.3"/>
+    <text x="460" y="117" text-anchor="middle" class="label-title">Classify</text>
+    <text x="460" y="134" text-anchor="middle" font-size="10.5" opacity="0.65">intent, urgency,</text>
+    <text x="460" y="146" text-anchor="middle" font-size="10.5" opacity="0.65">confidence</text>
+
+    <rect x="580" y="90" width="140" height="64" rx="8" fill="#ffffff" stroke="#16202b" stroke-width="1.3"/>
+    <text x="650" y="117" text-anchor="middle" class="label-title">Retrieve</text>
+    <text x="650" y="134" text-anchor="middle" font-size="10.5" opacity="0.65">ranked passages,</text>
+    <text x="650" y="146" text-anchor="middle" font-size="10.5" opacity="0.65">29-doc corpus</text>
+
+    <rect x="770" y="90" width="140" height="64" rx="8" fill="#ffffff" stroke="#16202b" stroke-width="1.3"/>
+    <text x="840" y="117" text-anchor="middle" class="label-title">Route</text>
+    <text x="840" y="134" text-anchor="middle" font-size="10.5" opacity="0.65">auto_respond vs.</text>
+    <text x="840" y="146" text-anchor="middle" font-size="10.5" opacity="0.65">escalate decision</text>
+  </g>
+  <g stroke="#16202b" fill="none">
+    <path d="M340,122 L390,122" marker-end="url(#pf-a1)"/>
+    <path d="M530,122 L580,122" marker-end="url(#pf-a1)"/>
+    <path d="M720,122 L770,122" marker-end="url(#pf-a1)"/>
+  </g>
+
+  <!-- generate, validate, sent-to-customer (auto_respond path) -->
+  <g font-size="12.5">
+    <rect x="960" y="20" width="150" height="64" rx="8" fill="#e4f0ec" stroke="#1f6f5c" stroke-width="1.3"/>
+    <text x="1035" y="47" text-anchor="middle" class="label-title">Generate</text>
+    <text x="1035" y="64" text-anchor="middle" font-size="10.5" opacity="0.7">grounded answer</text>
+    <text x="1035" y="76" text-anchor="middle" font-size="10.5" opacity="0.7">+ citations, or decline</text>
+
+    <rect x="1160" y="20" width="150" height="64" rx="8" fill="#e4f0ec" stroke="#1f6f5c" stroke-width="1.3"/>
+    <text x="1235" y="47" text-anchor="middle" class="label-title">Validate</text>
+    <text x="1235" y="64" text-anchor="middle" font-size="10.5" opacity="0.7">5 blocking</text>
+    <text x="1235" y="76" text-anchor="middle" font-size="10.5" opacity="0.7">guardrails</text>
+
+    <rect x="1160" y="140" width="150" height="46" rx="23" fill="#1f6f5c" stroke="#1f6f5c"/>
+    <text x="1235" y="168" text-anchor="middle" fill="#ffffff" class="label-title">Sent to customer</text>
+  </g>
+  <g stroke="#1f6f5c" fill="none" color="#1f6f5c">
+    <path d="M910,116 L960,60" marker-end="url(#pf-a1)"/>
+    <path d="M1110,52 L1160,52" marker-end="url(#pf-a1)"/>
+    <path d="M1235,84 L1235,140" marker-end="url(#pf-a1)"/>
+  </g>
+  <text x="915" y="98" font-size="10.5" fill="#1f6f5c">auto_respond</text>
+  <text x="920" y="107" font-size="10.5" fill="#1f6f5c">+ not declined</text>
+
+  <!-- escalate -->
+  <g font-size="12.5">
+    <rect x="765" y="260" width="260" height="70" rx="8" fill="#f6e9dd" stroke="#a35a1f" stroke-width="1.3"/>
+    <text x="895" y="288" text-anchor="middle" class="label-title" fill="#a35a1f">Escalate queue</text>
+    <text x="895" y="305" text-anchor="middle" font-size="10.5" opacity="0.75">human agent, with draft</text>
+    <text x="895" y="317" text-anchor="middle" font-size="10.5" opacity="0.75">+ full decision context</text>
+  </g>
+  <g stroke="#a35a1f" fill="none" color="#a35a1f">
+    <path d="M845,154 L865,260" marker-end="url(#pf-a1)"/>
+    <path d="M1160,60 L1030,260" marker-end="url(#pf-a1)"/>
+  </g>
+  <text x="600" y="215" font-size="10.5" fill="#a35a1f">forced: fallback used, always-escalate</text>
+  <text x="600" y="227" font-size="10.5" fill="#a35a1f">intent, no grounding, or low confidence</text>
+  <text x="1045" y="180" font-size="10.5" fill="#a35a1f">guardrail</text>
+  <text x="1045" y="192" font-size="10.5" fill="#a35a1f">blocked</text>
+
+  <!-- decision log band -->
+  <rect x="20" y="345" width="1320" height="40" rx="6" fill="#e6ebf4" stroke="#3a5a8c" stroke-dasharray="4 3"/>
+  <text x="680" y="369" text-anchor="middle" fill="#3a5a8c" font-size="12">Decision log (SQLite) -- every pipeline stage writes an auditable, timestamped row here</text>
+  <g stroke="#3a5a8c" stroke-dasharray="3 3" fill="none" color="#3a5a8c">
+    <path d="M270,154 L270,345"/>
+    <path d="M460,154 L460,345"/>
+    <path d="M650,154 L650,345"/>
+  </g>
+
+  <!-- integrations -->
+  <g font-size="11.5">
+    <rect x="390" y="410" width="180" height="50" rx="7" fill="#e6ebf4" stroke="#3a5a8c"/>
+    <text x="480" y="431" text-anchor="middle" fill="#3a5a8c" class="label-title">Groq: classifier</text>
+    <text x="480" y="447" text-anchor="middle" fill="#3a5a8c" font-size="10">gpt-oss-20b, retried 3x</text>
+
+    <rect x="580" y="410" width="180" height="50" rx="7" fill="#e6ebf4" stroke="#3a5a8c"/>
+    <text x="670" y="431" text-anchor="middle" fill="#3a5a8c" class="label-title">Chroma vector store</text>
+    <text x="670" y="447" text-anchor="middle" fill="#3a5a8c" font-size="10">all-MiniLM-L6-v2 embeddings</text>
+
+    <rect x="960" y="410" width="180" height="50" rx="7" fill="#e6ebf4" stroke="#3a5a8c"/>
+    <text x="1050" y="431" text-anchor="middle" fill="#3a5a8c" class="label-title">Groq: generator</text>
+    <text x="1050" y="447" text-anchor="middle" fill="#3a5a8c" font-size="10">gpt-oss-120b, retried 3x</text>
+  </g>
+  <g stroke="#3a5a8c" stroke-dasharray="3 3" fill="none">
+    <path d="M480,385 L480,410"/>
+    <path d="M670,385 L670,410"/>
+    <path d="M1035,385 L1050,410"/>
+  </g>
+</svg>

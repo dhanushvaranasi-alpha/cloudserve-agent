@@ -51,64 +51,14 @@ auto-respond path, Classify and Generate each make one Groq call, Retrieve
 queries Chroma, and every stage in the main row writes a row to the
 decision log.
 
-```mermaid
-flowchart LR
-    subgraph CH["Four channels"]
-        E[Email]
-        C[Chat]
-        P["Phone transcript"]
-        W["Web form"]
-    end
-    E --> ING(Ingest)
-    C --> ING
-    P --> ING
-    W --> ING
-    ING --> CLS(Classify)
-    CLS --> RET(Retrieve)
-    RET --> RTE(Route)
-    RTE -- auto_respond --> GEN(Generate)
-    GEN --> VAL(Validate)
-    VAL -- not blocked --> SENT(["Sent to customer"])
-    RTE -- "forced: fallback used, always-escalate\nintent, no grounding, or low confidence" --> ESC(["Escalate queue -> human agent"])
-    VAL -- "guardrail blocked" --> ESC
-    CLS -.-> GROQ1[["Groq: classifier\ngpt-oss-20b"]]
-    GEN -.-> GROQ2[["Groq: generator\ngpt-oss-120b"]]
-    RET -.-> CHROMA[["Chroma vector store"]]
-    ING -.-> LOG[("Decision log\nSQLite")]
-    CLS -.-> LOG
-    RET -.-> LOG
-    RTE -.-> LOG
-    GEN -.-> LOG
-    VAL -.-> LOG
-```
+![Pipeline flow: four channels into Ingest, through Classify, Retrieve and Route, splitting to Generate/Validate/sent-to-customer on the auto-respond path or to the escalate queue; Classify and Generate call Groq, Retrieve calls Chroma, and every stage writes to the SQLite decision log.](diagrams/pipeline_flow.svg)
 
 Ingest failures are handled the same way (a forced, logged escalate) but are
 left off this map for clarity; see `_ingest_node` in `src/pipeline.py`.
 
 ## 3. Low-level view: three layers
 
-```mermaid
-flowchart TB
-    subgraph L1["Interface layer"]
-        API["FastAPI: src/api/main.py (+ demo UI at '/')"]
-        CLI["CLI: evaluation/harness.py"]
-    end
-    subgraph L2["Orchestration / business-logic layer"]
-        PIPE["pipeline.py -- langgraph.graph.StateGraph"]
-        MODS["classify / retrieve / route / generate / validate modules"]
-    end
-    subgraph L3["Persistence / integration layer"]
-        SQL[("SQLite -- decision_log.py")]
-        VEC[("Chroma vector store, via langchain_chroma +\nlangchain_huggingface embeddings")]
-        LLM[["Groq, via langchain_groq.ChatGroq"]]
-    end
-    API --> PIPE
-    CLI --> PIPE
-    PIPE --> MODS
-    MODS --> SQL
-    MODS --> VEC
-    MODS --> LLM
-```
+![Three stacked layers: an interface layer with FastAPI and the CLI harness, calling into an orchestration layer centered on pipeline.py and the five component modules, which calls into a persistence and integration layer of SQLite, Chroma and Groq.](diagrams/layered_stack.svg)
 
 Separating these is what makes the system testable without a network
 connection: `ChatClient` and the retriever are both structural interfaces
@@ -124,19 +74,7 @@ Four sequential checks, not one. Any "escalate" exit is logged with which
 check triggered it, so a support manager can read the reason without
 opening code.
 
-```mermaid
-flowchart TD
-    A{"Classifier used its fallback?\n(provider down / unparseable response)"} -- yes --> ESC1(["ESCALATE forced"])
-    A -- no --> B{"Intent is always-escalate?\n(compliance, security, feature_request, unclear)"}
-    B -- yes --> ESC2(["ESCALATE forced"])
-    B -- no --> C{"Retrieval found grounding?\n(passage above 0.35 relevance)"}
-    C -- no --> ESC3(["ESCALATE forced"])
-    C -- yes --> D{"Confidence >= threshold?\n(CONFIDENCE_THRESHOLD, default 0.80)"}
-    D -- no --> ESC4(["ESCALATE"])
-    D -- yes --> E["AUTO_RESPOND -> generate -> validate"]
-    E -- "guardrail blocked" --> ESC5(["ESCALATE"])
-    E -- passed --> SENT(["Sent to customer"])
-```
+![Decision cascade: fallback-used, then always-escalate intent, then no grounding found, then confidence below threshold, each escalating on trigger; if none trigger, the ticket proceeds to generate and validate, which either sends the answer or escalates on a guardrail block.](diagrams/routing_cascade.svg)
 
 Every branch is logged with a human-readable reason (`src/route/router.py`),
 per Build Spec A5's "a support manager could read it" requirement.
