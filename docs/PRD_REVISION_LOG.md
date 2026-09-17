@@ -115,3 +115,32 @@ the 500-ticket development-set scale, and whether the tier-fairness spread
 surfaced by this same clean run is real. Both would be settled by the same
 next step: a full clean run of the 500-ticket set, split across two calendar
 days to avoid the quota ceiling.
+
+## Addendum: the LangChain/LangGraph/LangSmith branch, 2026-09-17
+
+Separately from the clean run above, a second branch,
+langchain-langgraph-migration, was built on 2026-09-17 to demonstrate an
+alternative this project's own "alternatives considered" comparison had
+already named and set aside: using LangChain and LangGraph for
+orchestration. This addendum records why that branch produced no entry in
+the change table above.
+
+No functional or non-functional requirement changed. src/pipeline.py was
+rewritten as a langgraph.graph.StateGraph, and the model and retrieval
+calls now go through langchain_groq.ChatGroq and langchain_chroma.Chroma,
+but every public interface, the ChatClient protocol, the retriever's
+public methods, every component function's signature, and run_ticket()'s
+own signature and return type, stayed identical to master, and all 53
+existing tests pass unchanged on the new branch. FR-10's decision-logging
+requirement is still met the same way, by the SQLite decision log, on both
+branches. The one new thing this branch adds, LangSmith tracing, is
+documented in docs/architecture.md section 7 as an optional, off-by-default
+observability layer, not a requirement, since nothing in the PRD asked for
+a specific tracing tool and FR-10 does not depend on it.
+
+In short, this was an implementation choice below the line the PRD draws,
+exactly the kind of change this revision log is not meant to capture,
+since nothing a requirement promises changed on either branch. master is
+kept as the comparison baseline; langchain-langgraph-migration is the
+branch used for demos going forward, a decision recorded in the project's
+own working notes rather than in this requirements-facing log.
