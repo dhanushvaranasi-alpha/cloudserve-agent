@@ -2,9 +2,11 @@
 #
 # This branch (langchain-langgraph-migration) replaces the plain-Python
 # control flow and the direct groq/chromadb clients with LangChain and
-# LangGraph. See docs/architecture.md "Stack decisions" for why the
-# original branch (master) chose plain Python instead, and
-# docs/PRD_REVISION_LOG.md for why this branch exists anyway.
+# LangGraph, and adds optional LangSmith tracing (see docs/architecture.md
+# §7 -- off unless LANGSMITH_TRACING=true is set in .env). See
+# docs/architecture.md "Stack decisions" for why the original branch
+# (master) chose plain Python instead, and docs/PRD_REVISION_LOG.md for
+# why this branch exists anyway.
 #
 # The original template pinned very old releases (e.g. chromadb==0.3.21,
 # langchain==0.1.0) that no longer install cleanly; everything below is a
@@ -28,6 +30,13 @@ langchain-chroma==1.1.0
 langchain-huggingface==1.2.2
 chromadb==1.5.9
 sentence-transformers==3.2.1
+
+# Observability (optional -- LangSmith tracing, see docs/architecture.md §7)
+# Already pulled in transitively by langchain-core; pinned explicitly here
+# since it's a first-class, named part of this branch's stack, not an
+# incidental sub-dependency. Tracing itself only activates if
+# LANGSMITH_TRACING=true is set in .env; otherwise this package sits idle.
+langsmith==0.12.6
 
 # Data / eval
 numpy==2.1.3

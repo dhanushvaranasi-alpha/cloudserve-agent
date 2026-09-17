@@ -15,6 +15,7 @@
 | Prepared by | Dhanush Varanasi |
 | Traceability | Every FR/NFR below cites the discovery evidence (interview quote or dataset statistic) that produced it |
 | Revision | See `docs/PRD_REVISION_LOG.md` (Stage 5) once the build surfaces what v1 got wrong |
+| Implementation branch | Every requirement below is implementation-agnostic by design (same FR/NFR, same file paths under `src/`, on both branches). Live demos, screenshots and the video are from `langchain-langgraph-migration`; `master` is the original plain-Python baseline kept for comparison. See `docs/architecture.md` §6 |
 
 ## 2. The problem
 
@@ -54,7 +55,7 @@ Each row: requirement → discovery evidence it's traceable to → where it's im
 | FR-07 | Decline explicitly ("I don't know") when ungrounded, rather than filling the gap | Ravi: acceptable only "provided it is honest" | `src/generate/generator.py` |
 | FR-08 | Route deterministically: same input → same decision. Always-escalate for `compliance_request`, `security_incident`, `feature_request`, `unclear_request` regardless of confidence; otherwise threshold-based | Daniel names security/billing/data-location as never-automate; data shows these 4 classes are escalated 100% of the time historically (87/500 tickets); Build Spec A5 | `src/route/router.py` |
 | FR-09 | Validate every generated response against 5 blocking guardrails before release: private data, grounding, instruction integrity, tone/scope, confidence floor | Governance_Framework.docx §4; Build Spec A7 | `src/validate/guardrails.py` |
-| FR-10 | Log every automated decision (classification, retrieval, routing, generation, validation) with the minimum record schema | Governance_Framework.docx §1; Marcus's compliance review | `src/persistence/decision_log.py` |
+| FR-10 | Log every automated decision (classification, retrieval, routing, generation, validation) with the minimum record schema | Governance_Framework.docx §1; Marcus's compliance review | `src/persistence/decision_log.py` (SQLite, always on); complemented on `langchain-langgraph-migration` by optional LangSmith tracing for step-level debugging, see `docs/architecture.md` §7 -- LangSmith is a demo/debug aid, not a substitute for this record |
 | FR-11 | Escalations carry the drafted summary, retrieved sources, and the specific point of low confidence to the human agent | Daniel: "I need it to show its working." This is the core design response to the discovery finding | `src/pipeline.py::run_ticket` (`escalation_summary`) |
 | FR-12 | Evaluation harness accepts `--input`/`--output` paths (never a hardcoded file) and processes a full ticket set unattended, producing a metrics report with no manual post-processing | Build Spec A9/A10, the hidden 120-ticket set is never seen before grading | `evaluation/harness.py` |
 
@@ -75,7 +76,7 @@ Each row: requirement → discovery evidence it's traceable to → where it's im
 Explicit cuts, each defensible on its own terms rather than only "ran out of time":
 
 - **Proactive/outbound outreach**, the discovery evidence is entirely about inbound tickets; nothing supports building outbound flows.
-- **A full agent-facing review UI**, Tier 2 gets escalation context via the decision log and API response, not a dedicated desk application. The *content* Daniel asked for (summary, sources, confidence) is in scope; the UI to browse it is not.
+- **A full agent-facing review UI**, Tier 2 gets escalation context via the decision log and API response, not a dedicated desk application. The *content* Daniel asked for (summary, sources, confidence) is in scope; the UI to browse it is not. (The browser demo page at `GET /`, added later for the video, is a demo interface for showing the pipeline's decisions, not this cut Tier-2 desk tool, see `docs/architecture.md` §9.)
 - **Non-English generation**, answers are produced in English even for non-fluent-English tickets in v1. This is a named limitation, not a silent one: it is exactly the mechanism the fairness audit tests, and a candidate PRD revision if the audit finds a real gap.
 - **Auto-updating the documentation corpus**, the 29 articles are treated as a fixed snapshot; a staleness-detection pipeline (Ines mentioned a review rotation) is future work.
 - **Fine-tuning or hosting a custom model**, the free hosted Groq tier is used as-is, consistent with the project's cost constraint.

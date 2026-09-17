@@ -5,6 +5,13 @@ Forward Deployed AI Engineering capstone. Full brief: `docs/PRD.md` and
 follows (Build Specification, "how it will be tested"), every command
 below has been run from a clean checkout.
 
+**Branch note:** this is the `langchain-langgraph-migration` branch, the
+one used for all demos, screenshots and the video going forward. `master`
+holds the original plain-Python implementation of the identical system,
+kept as a comparison baseline. Both branches pass the same 53 tests behind
+the same public interfaces; see `docs/architecture.md` §6 for what
+actually differs between them.
+
 ## What this is
 
 CloudServe asked for a chatbot. Discovery evidence (see `docs/PRD.md` §2)
@@ -38,12 +45,35 @@ Data files (`development_tickets.json`, `validation_tickets.json`,
 `documentation.json`, `ground_truth_responses.json`) are expected under
 `data/`.
 
+**Optional: LangSmith tracing.** This branch's pipeline is a LangGraph
+graph, so turning on tracing needs no code changes, just three more lines
+in `.env` (get a free API key at smith.langchain.com, Settings -> API
+Keys):
+```
+LANGSMITH_API_KEY=your_key_here
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=cloudserve-support
+```
+Leave these unset and nothing changes, no external call is made and no
+test depends on them. Set them and every `run_ticket()` call shows up at
+smith.langchain.com as a run graph, one node per pipeline stage with its
+latency and (for Classify/Generate) token count. See `docs/architecture.md`
+§7.
+
 ## Running it
 
-**Start the API:**
+**Start the API (and the demo UI):**
 ```bash
 uvicorn src.api.main:app --reload --port 8000
-# POST a ticket:
+```
+Open `http://localhost:8000/` in a browser for the demo UI: a chat-style
+composer plus tabs for classification, retrieval, routing, generation,
+guardrails and the decision log, built for the video (see
+`docs/architecture.md` §9, this is not the Tier-2 review UI cut in
+`docs/PRD.md` §6).
+
+Or hit the API directly:
+```bash
 curl -X POST http://localhost:8000/tickets -H "Content-Type: application/json" -d '{
   "ticket_id": "DEMO-1", "channel": "email",
   "subject": "Cannot log in to the console",
@@ -65,13 +95,13 @@ never a hardcoded filename, for exactly that reason. Output:
 ```bash
 python -m pytest tests/ -v
 ```
-All 51 tests run with **no network access and no API key**, every
+All 53 tests run with **no network access and no API key**, every
 component that calls an external service (`src/llm_client.py`'s
 `GroqChatClient`, `src/retrieve/retriever.py`'s `Retriever`) has a fake
 counterpart (`FakeChatClient`, `FakeRetriever`) used throughout `tests/`.
 This is also how the pipeline logic was verified during development in an
 environment with no outbound network access at all, see
-`docs/architecture.md` §2.
+`docs/architecture.md` §3.
 
 ## Repository structure
 
@@ -84,14 +114,15 @@ src/
   generate/     grounded answer + citations, or decline     (A6, A7)
   validate/     5 blocking guardrails                       (A7)
   persistence/  decision log (SQLite)                       (A8)
-  api/          FastAPI interface
-  pipeline.py   wires all six components together
-  llm_client.py Groq wrapper + retry/backoff + fakes         (A11)
+  api/          FastAPI interface + demo UI (GET /)
+  pipeline.py   wires all six components together (LangGraph StateGraph on this branch)
+  llm_client.py Groq wrapper (langchain_groq.ChatGroq) + retry/backoff + fakes  (A11)
   config.py     all settings, read from .env
   schemas.py    shared pydantic types
+web/            demo UI (single page, served by src/api/main.py)
 prompts/        versioned prompt library (Stage 3)
 evaluation/     harness (A9/A10) + metrics calculations
-tests/          51 tests, no network required
+tests/          53 tests, no network required
 docs/           PRD, architecture notes, revision log
 data/           sample ticket/documentation data
 .github/workflows/  CI: tests + credential scan on every push
@@ -103,11 +134,16 @@ data/           sample ticket/documentation data
   `requirements.txt` (which pins `chromadb==0.3.21`, `langchain==0.1.0`,
   etc., these no longer install). Current stable versions are used
   instead; everything is still free/open source. See
-  `docs/architecture.md` §5 for the full list and reasoning.
-- **No LangChain/LangGraph.** The pipeline is six plain Python functions
-  called in sequence with branches, see `src/pipeline.py`. This was a
-  deliberate choice for a project this size: easier to unit-test with
-  fakes, easier to explain on the video line-by-line.
+  `docs/architecture.md` §6 for the full list and reasoning.
+- **This branch uses LangChain, LangGraph and (optionally) LangSmith.**
+  `src/pipeline.py` is a `langgraph.graph.StateGraph`, `src/llm_client.py`
+  calls Groq through `langchain_groq.ChatGroq`, and
+  `src/retrieve/retriever.py` uses `langchain_chroma`/
+  `langchain_huggingface`. `master` keeps the original plain-Python
+  version (six functions called in sequence, no framework) as a
+  comparison baseline; both pass the same 53 tests. See
+  `docs/architecture.md` §6 for the full history of that decision and why
+  this branch is the one demoed now (mainly: LangSmith tracing, §7).
 - **The confidence threshold (0.80) is the pack's own illustrative
   number, not a measured one.** `evaluation/harness.py`'s calibration
   table is what should justify moving it, see `docs/PRD_REVISION_LOG.md`
@@ -118,7 +154,8 @@ data/           sample ticket/documentation data
 See `docs/PRD.md` §6 "Out of scope" for the full list. Headline ones:
 generation is English-only even for non-fluent-English tickets in v1 (a
 named fairness risk under active test, not a silent gap); there's no
-agent-facing review UI, only the API + decision log.
+agent-facing review UI, only the API + decision log (the demo page at
+`GET /` is a video aid, not that UI, see above).
 
 ## AI tool use declaration
 
