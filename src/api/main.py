@@ -2,12 +2,19 @@
 FastAPI interface. Not the primary grading path (the harness is -- A9), but
 gives a real HTTP surface for the live demo in the video and for manual
 poking during the build.
+
+Also serves the demo UI (web/index.html) at "/" -- a single-page chat-style
+front end for the video: submit a ticket, watch the pipeline's real decision
+(classification, retrieval, routing, generation, guardrails) come back from
+the same endpoints below, no separate server or build step needed.
 """
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from src.llm_client import get_default_client
@@ -19,6 +26,13 @@ logging.basicConfig(level="INFO", format="%(asctime)s %(levelname)s %(name)s: %(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="CloudServe Support System", version="0.1.0")
+
+_WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+
+
+@app.get("/")
+def demo_ui():
+    return FileResponse(_WEB_DIR / "index.html")
 
 _client = None
 _retriever = None
