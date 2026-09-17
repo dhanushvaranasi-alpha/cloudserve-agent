@@ -25,10 +25,26 @@ validation) is written to `storage/decisions.db` (SQLite) by
 }
 ```
 
-**Coverage check:** `DecisionLog.count_distinct_tickets()` vs. tickets
-processed is computed automatically in every `metrics_report.json`
-(`governance.decision_log_reconciles`) — this is checked by the harness
-itself on every run, not audited by hand afterward.
+**Coverage check:** `governance.decision_log_reconciles` is computed
+automatically in every `metrics_report.json` by comparing the run's own
+ticket set against `DecisionLog.count_distinct_tickets_in(ticket_ids)`,
+this is checked by the harness itself on every run, not audited by hand
+afterward.
+
+**A real bug this caught (2026-09-16):** the decision log db is never
+cleared between runs, by design, it's meant to be an accumulating audit
+trail across the system's lifetime (`count_distinct_tickets()`, no
+scoping, is kept for that whole-log-audit use case). The harness
+originally reconciled *any* run against that whole-table count, so two
+runs on the same db (500 tickets, then a disjoint 80) both reported
+`"decisions_logged": 580` and `decision_log_reconciles: true`, because
+580 ≥ either run's ticket count regardless of whether that run's own
+tickets were actually logged. Fixed by scoping the reconciliation (and
+`guardrail_activations_by_type` / `private_data_detections`, which had the
+same issue) to the current run's `ticket_id`s via
+`count_distinct_tickets_in()` / `guardrail_activation_counts(ticket_ids)`.
+Regression tests: `tests/test_decision_log.py::test_count_distinct_tickets_in_scopes_to_one_run`
+and `::test_guardrail_activation_counts_scopes_to_one_run`.
 
 ## 2. Risk register
 

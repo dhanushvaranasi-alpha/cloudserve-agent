@@ -124,7 +124,9 @@ def run_evaluation(
         "business": business_metrics(results),
         "technical": technical_metrics(results, ground_truth),
         "governance": governance_metrics(
-            results, log.count_distinct_tickets(), log.guardrail_activation_counts()
+            results,
+            log.count_distinct_tickets_in([t.get("ticket_id") for t in tickets]),
+            log.guardrail_activation_counts([t.get("ticket_id") for t in tickets]),
         ),
         "calibration": calibration_table(results, ground_truth),
         "fairness_segments": fairness_segments(results, tickets_by_id),

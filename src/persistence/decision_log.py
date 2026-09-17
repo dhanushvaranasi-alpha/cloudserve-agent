@@ -112,8 +112,36 @@ class DecisionLog:
         return decision_id
 
     def count_distinct_tickets(self) -> int:
+        """Distinct tickets in the WHOLE log, across every run ever written to
+        this db path. The log is an accumulating audit trail by design (see
+        module docstring) and is never cleared between harness runs, so this
+        number grows across runs -- it answers "how many tickets has this
+        system ever logged a decision for", not "did the run I just did log
+        correctly". Kept for that broader audit use case; use
+        count_distinct_tickets_in() to check a specific run.
+        """
         with self._connect() as conn:
             row = conn.execute("SELECT COUNT(DISTINCT ticket_id) FROM decisions").fetchone()
+            return row[0] if row else 0
+
+    def count_distinct_tickets_in(self, ticket_ids: list[str]) -> int:
+        """Distinct tickets FROM ticket_ids that have at least one decision
+        logged. Scoped reconciliation check for one run: because the log is
+        never cleared between runs (see count_distinct_tickets docstring),
+        comparing a run's ticket count against the whole table's distinct
+        count silently passes even if that run's own logging failed, as long
+        as older runs left enough history in the table. This is the check
+        evaluation/harness.py should use for governance.decision_log_reconciles.
+        """
+        ticket_ids = list(dict.fromkeys(tid for tid in ticket_ids if tid))
+        if not ticket_ids:
+            return 0
+        with self._connect() as conn:
+            placeholders = ",".join("?" for _ in ticket_ids)
+            row = conn.execute(
+                f"SELECT COUNT(DISTINCT ticket_id) FROM decisions WHERE ticket_id IN ({placeholders})",
+                ticket_ids,
+            ).fetchone()
             return row[0] if row else 0
 
     def all_for_ticket(self, ticket_id: str) -> list[dict[str, Any]]:
@@ -124,13 +152,29 @@ class DecisionLog:
             ).fetchall()
             return [dict(r) for r in rows]
 
-    def guardrail_activation_counts(self) -> dict[str, int]:
+    def guardrail_activation_counts(self, ticket_ids: Optional[list[str]] = None) -> dict[str, int]:
+        """Guardrail activation counts. Same cross-run scoping issue as
+        count_distinct_tickets(): the log is never cleared between runs, so
+        with no ticket_ids filter this sums activations over every run ever
+        written to this db path, not just the run being reported on. Pass
+        this run's ticket_ids (as evaluation/harness.py does) to scope it to
+        one run's governance report; omit it only for a whole-log audit.
+        """
         counts: dict[str, int] = {}
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                "SELECT guardrail_results FROM decisions WHERE stage = 'validation'"
-            ).fetchall()
+            if ticket_ids:
+                ticket_ids = list(dict.fromkeys(tid for tid in ticket_ids if tid))
+                placeholders = ",".join("?" for _ in ticket_ids)
+                rows = conn.execute(
+                    f"SELECT guardrail_results FROM decisions "
+                    f"WHERE stage = 'validation' AND ticket_id IN ({placeholders})",
+                    ticket_ids,
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT guardrail_results FROM decisions WHERE stage = 'validation'"
+                ).fetchall()
         for row in rows:
             results = json.loads(row["guardrail_results"] or "{}")
             for name, passed in results.items():
