@@ -69,20 +69,40 @@ this is not a manual spreadsheet exercise.
 
 | Segment | Tickets in segment | Resolution rate | Variation from best | Explanation |
 |---|---|---|---|---|
-| Enterprise customers | **[pending run]** | | | |
-| Business customers | **[pending run]** | | | |
-| Standard customers | **[pending run]** | | | |
-| Fluent English | **[pending run]** | | | |
-| Non-fluent English | **[pending run]** | | | |
+| Enterprise customers | 83 | 26.51% | 3.37 points | Lowest of the three tiers, but within the 5 point NFR-07 threshold. |
+| Business customers | 164 | 29.88% | 0 points (best) | Highest resolution rate of the three tiers. |
+| Standard customers | 253 | 26.48% | 3.40 points | Effectively tied with enterprise; both trail business by a similar margin. |
+| Fluent English | 380 | 27.37% | 0.96 points | Essentially even with non-fluent. |
+| Non-fluent English | 120 | 28.33% | 0 points (best) | Slightly higher than fluent, not lower as the hypothesis below expected. |
 
-**What we expect to find, and why it matters going in:** the interviews
+Numbers are from the live 500 ticket run against `data/development_tickets.json`
+(`evaluation/results/metrics_report.json`, 2026-09-16). Caveat: 32.2% of
+that run's tickets (161/500) fell back to a forced escalation because
+Groq's daily token quota was exhausted partway through, which depresses
+the absolute resolution rate for every segment equally rather than any
+one segment specifically, so the relative comparison between segments is
+still informative even though the absolute rates are not the clean
+number. A second, 80 ticket rerun (`evaluation/results/validation_run/metrics_report.json`)
+showed the same direction, non-fluent resolving at a higher rate than
+fluent, but at n=19 non-fluent tickets and 90% of that run's tickets
+falling back, it is too small and too contaminated to serve as
+independent confirmation on its own.
+
+**What we expected to find, and what we found instead:** the interviews
 (Sofia) and the Governance Framework's own stated failure mode both point
 at retrieval-on-phrasing hurting non-fluent tickets specifically — a
 retrieval system matches on how the query is worded, and non-fluent
 phrasing diverges further from documentation language. The dev-set
 historical data was mixed on this (see `docs/PRD.md` §2, point 4), so this
-audit is a real test, not confirmation of an assumed conclusion. If the gap
-appears, it becomes the headline finding for the PRD revision (Stage 5).
+audit was a real test, not confirmation of an assumed conclusion. On the
+live run, the hypothesized gap did not appear: every segment's variation
+from the best-performing segment is under 4 points, well inside NFR-07's
+5 point threshold, and non-fluent tickets resolved at a very slightly
+higher rate than fluent ones rather than a lower one. This is recorded as
+a provisional finding, not a closed question, since a fully clean run
+(once the Groq quota allows one) is still needed at a larger non-fluent
+sample size before this could support a real deployment recommendation.
+See the PRD revision log (Stage 5), assumption 4, for the full reasoning.
 
 ## 4. Guardrails
 
