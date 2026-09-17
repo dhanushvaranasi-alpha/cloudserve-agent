@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudServe Support System - Live Demo</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --panel: #ffffff;
+    --border: #e0e4ea;
+    --text: #1c2430;
+    --muted: #6b7686;
+    --accent: #2f5fd6;
+    --accent-dark: #23459e;
+    --ok: #1f9d55;
+    --ok-bg: #e7f7ee;
+    --warn: #c47c00;
+    --warn-bg: #fdf3e0;
+    --bad: #d1373f;
+    --bad-bg: #fbe8e9;
+    --chip-bg: #eef1f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: #101827;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header span { color: #9aa7bd; font-size: 13px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 16px;
+    padding: 16px;
+    height: calc(100vh - 56px);
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* --- left: chat panel --- */
+  .chat-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bubble { max-width: 92%; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; }
+  .bubble.ticket { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 2px; cursor: pointer; }
+  .bubble.system { align-self: flex-start; background: var(--chip-bg); border-bottom-left-radius: 2px; cursor: pointer; }
+  .bubble.system.selected, .bubble.ticket.selected { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
+  .bubble .badge { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 2px 7px; border-radius: 5px; margin-bottom: 5px; }
+  .badge.auto_respond { background: var(--ok-bg); color: var(--ok); }
+  .badge.escalate { background: var(--warn-bg); color: var(--warn); }
+  .badge.block { background: var(--bad-bg); color: var(--bad); }
+  .badge.error { background: var(--bad-bg); color: var(--bad); }
+  .presets { padding: 10px 14px; border-top: 1px solid var(--border); }
+  .presets .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .preset-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .preset-btn { font-size: 12px; padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  form.composer { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; gap: 8px; }
+  .row select, .row input { font-size: 12.5px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; flex: 1; }
+  textarea {
+    width: 100%; min-height: 64px; resize: vertical; font-size: 13.5px;
+    padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit;
+  }
+  input[type=text] { font-size: 13.5px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); width: 100%; }
+  .send-row { display: flex; justify-content: space-between; align-items: center; }
+  .send-btn { background: var(--accent); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .send-btn:disabled { background: #a9b6cc; cursor: default; }
+  .status-line { font-size: 12px; color: var(--muted); }
+
+  /* --- right: tabs panel --- */
+  .tabs-bar { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn { padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: var(--accent-dark); border-bottom-color: var(--accent); }
+  .tab-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .empty-state { color: var(--muted); font-size: 13.5px; padding: 40px 10px; text-align: center; }
+
+  .kv { display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; font-size: 13.5px; margin-bottom: 18px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  h3.section { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+
+  .action-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
+  .action-pill.auto_respond { background: var(--ok-bg); color: var(--ok); }
+  .action-pill.escalate { background: var(--warn-bg); color: var(--warn); }
+  .action-pill.block { background: var(--bad-bg); color: var(--bad); }
+
+  .conf-bar-wrap { background: #eef1f6; border-radius: 6px; height: 10px; width: 100%; position: relative; margin-top: 4px; }
+  .conf-bar-fill { background: var(--accent); height: 100%; border-radius: 6px; }
+  .conf-threshold { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #101827; }
+
+  table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  table.data td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.data tr:last-child td { border-bottom: none; }
+
+  .pass { color: var(--ok); font-weight: 700; }
+  .fail { color: var(--bad); font-weight: 700; }
+
+  .passage-card { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+  .passage-card .head { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px; }
+  .passage-card .doc-id { font-weight: 700; color: var(--accent-dark); }
+  .passage-card .score { color: var(--muted); }
+  .passage-card .text { font-size: 12.5px; color: #333; white-space: pre-wrap; }
+
+  .answer-box { background: var(--chip-bg); border-radius: 8px; padding: 14px; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; margin-bottom: 14px; }
+  .citation-chip { display: inline-block; background: var(--chip-bg); border: 1px solid var(--border); border-radius: 5px; padding: 2px 8px; font-size: 11.5px; margin: 2px 4px 2px 0; }
+
+  code.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--chip-bg); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CloudServe Support System</h1>
+  <span>Live demo - LangGraph pipeline, LangChain LLM &amp; retrieval clients</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: chat / ticket submission -->
+  <div class="panel">
+    <div class="chat-log" id="chatLog">
+      <div class="empty-state">Submit a ticket below, or try one of the preset scenarios, to see how the pipeline handles it.</div>
+    </div>
+
+    <div class="presets">
+      <div class="label">Preset scenarios</div>
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="usePreset('grounded')">Grounded question (auto-respond)</button>
+        <button class="preset-btn" onclick="usePreset('security')">Security incident (forced escalate)</button>
+        <button class="preset-btn" onclick="usePreset('vague')">Vague request (low confidence)</button>
+      </div>
+    </div>
+
+    <form class="composer" id="composer" onsubmit="return handleSubmit(event)">
+      <div class="row">
+        <select id="channel">
+          <option value="email">Email</option>
+          <option value="chat" selected>Chat</option>
+          <option value="docs_comment">Docs comment</option>
+          <option value="forum">Forum</option>
+        </select>
+        <select id="customerTier">
+          <option value="standard">Standard</option>
+          <option value="business" selected>Business</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+      <input type="text" id="subject" placeholder="Subject (optional)">
+      <textarea id="body" placeholder="Type the customer's message..." required></textarea>
+      <div class="send-row">
+        <span class="status-line" id="statusLine"></span>
+        <button type="submit" class="send-btn" id="sendBtn">Send ticket</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RIGHT: decision tabs -->
+  <div class="panel">
+    <div class="tabs-bar" id="tabsBar">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="classification">Classification</button>
+      <button class="tab-btn" data-tab="retrieval">Retrieval</button>
+      <button class="tab-btn" data-tab="routing">Routing</button>
+      <button class="tab-btn" data-tab="generation">Generation</button>
+      <button class="tab-btn" data-tab="guardrails">Guardrails</button>
+      <button class="tab-btn" data-tab="log">Decision log</button>
+    </div>
+    <div class="tab-body" id="tabBody">
+      <div class="empty-state">No ticket selected yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "";
+const results = {};          // ticket_id -> full PipelineResult JSON
+const decisionLogCache = {}; // ticket_id -> rows
+let activeTicketId = null;
+let activeTab = "overview";
+
+const PRESETS = {
+  grounded: {
+    channel: "chat", customerTier: "business", subject: "",
+    body: "Are the search endpoints limited differently from the rest? Our read traffic is fine but search is being rejected constantly."
+  },
+  security: {
+    channel: "email", customerTier: "enterprise", subject: "Unauthorized API activity",
+    body: "We are seeing API calls from an IP address we do not recognize, and one of our team members says they did not make these requests. We think our account may be compromised."
+  },
+  vague: {
+    channel: "forum", customerTier: "standard", subject: "",
+    body: "it's broken again, please help"
+  }
+};
+
+function usePreset(key) {
+  const p = PRESETS[key];
+  document.getElementById("channel").value = p.channel;
+  document.getElementById("customerTier").value = p.customerTier;
+  document.getElementById("subject").value = p.subject;
+  document.getElementById("body").value = p.body;
+  document.getElementById("body").focus();
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function newTicketId() {
+  const t = new Date();
+  const stamp = t.toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+  return "DEMO-" + stamp;
+}
+
+async function handleSubmit(evt) {
+  evt.preventDefault();
+  const body = document.getElementById("body").value.trim();
+  if (!body) return false;
+
+  const ticketId = newTicketId();
+  const payload = {
+    ticket_id: ticketId,
+    channel: document.getElementById("channel").value,
+    subject: document.getElementById("subject").value,
+    body: body,
+    received_at: new Date().toISOString(),
+    customer_tier: document.getElementById("customerTier").value
+  };
+
+  addTicketBubble(ticketId, payload);
+  setBusy(true, "Running the pipeline...");
+
+  try {
+    const resp = await fetch(API + "/tickets", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      addSystemBubble(ticketId, null, err);
+      setBusy(false, "Request failed.");
+      return false;
+    }
+    const result = await resp.json();
+    results[ticketId] = result;
+    addSystemBubble(ticketId, result, null);
+    selectTicket(ticketId);
+    setBusy(false, "");
+  } catch (e) {
+    addSystemBubble(ticketId, null, String(e));
+    setBusy(false, "Could not reach the server.");
+  }
+
+  document.getElementById("body").value = "";
+  document.getElementById("subject").value = "";
+  return false;
+}
+
+function setBusy(busy, msg) {
+  document.getElementById("sendBtn").disabled = busy;
+  document.getElementById("statusLine").textContent = msg || "";
+}
+
+function addTicketBubble(ticketId, payload) {
+  const log = document.getElementById("chatLog");
+  if (log.querySelector(".empty-state")) log.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "bubble ticket";
+  div.dataset.ticketId = ticketId;
+  div.onclick = () => selectTicket(ticketId);
+  div.innerHTML = `<div style="opacity:.75;font-size:11px;margin-bottom:3px;">${escapeHtml(ticketId)}</div>${escapeHtml(payload.body)}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function addSystemBubble(ticketId, result, errorText) {
+  const log = document.getElementById("chatLog");
+  const div = document.createElement("div");
+  div.className = "bubble system";
+  div.dataset.ticketId = ticketId;
+  div.onclick = () => selectTicket(ticketId);
+
+  if (errorText) {
+    div.innerHTML = `<span class="badge error">error</span><br>${escapeHtml(errorText)}`;
+  } else {
+    const action = result.final_action;
+    const text = action === "auto_respond"
+      ? result.final_text_sent
+      : (result.escalation_summary || "(no response generated)");
+    div.innerHTML = `<span class="badge ${escapeHtml(action)}">${escapeHtml(action).replace("_"," ")}</span><br>${escapeHtml(text)}`;
+  }
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function selectTicket(ticketId) {
+  activeTicketId = ticketId;
+  document.querySelectorAll(".bubble").forEach(b => {
+    b.classList.toggle("selected", b.dataset.ticketId === ticketId);
+  });
+  renderActiveTab();
+}
+
+document.getElementById("tabsBar").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab-btn");
+  if (!btn) return;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  activeTab = btn.dataset.tab;
+  renderActiveTab();
+});
+
+function renderActiveTab() {
+  const body = document.getElementById("tabBody");
+  if (!activeTicketId || !results[activeTicketId]) {
+    body.innerHTML = `<div class="empty-state">No ticket selected yet.</div>`;
+    return;
+  }
+  const r = results[activeTicketId];
+  switch (activeTab) {
+    case "overview": return renderOverview(body, r);
+    case "classification": return renderClassification(body, r);
+    case "retrieval": return renderRetrieval(body, r);
+    case "routing": return renderRouting(body, r);
+    case "generation": return renderGeneration(body, r);
+    case "guardrails": return renderGuardrails(body, r);
+    case "log": return renderDecisionLog(body, r);
+  }
+}
+
+function renderOverview(body, r) {
+  body.innerHTML = `
+    <h3 class="section">Result</h3>
+    <div style="margin-bottom:18px;">
+      <span class="action-pill ${escapeHtml(r.final_action)}">${escapeHtml(r.final_action).replace("_"," ")}</span>
+    </div>
+    <dl class="kv">
+      <dt>Ticket ID</dt><dd><code class="mono">${escapeHtml(r.ticket_id)}</code></dd>
+      <dt>Channel</dt><dd>${escapeHtml(r.channel)}</dd>
+      <dt>Latency</dt><dd>${r.latency_seconds ? r.latency_seconds.toFixed(2) + "s" : "-"}</dd>
+      <dt>Error</dt><dd>${r.error ? escapeHtml(r.error) : "none"}</dd>
+    </dl>
+    <h3 class="section">What the customer sees</h3>
+    <div class="answer-box">${escapeHtml(r.final_action === "auto_respond" ? r.final_text_sent : (r.escalation_summary || "(escalated, no auto-response sent)"))}</div>
+  `;
+}
+
+function renderClassification(body, r) {
+  const c = r.classification;
+  const pct = Math.round(c.confidence * 100);
+  const thresholdPct = 80; // src/config.py CONFIDENCE_THRESHOLD default
+  const alts = (c.alternatives || []).map(a => `<li><code class="mono">${escapeHtml(a.intent)}</code>: ${(a.confidence*100).toFixed(0)}%</li>`).join("") || "<li>none</li>";
+  body.innerHTML = `
+    <h3 class="section">Predicted intent</h3>
+    <dl class="kv">
+      <dt>Intent</dt><dd><code class="mono">${escapeHtml(c.intent)}</code></dd>
+      <dt>Urgency</dt><dd>${escapeHtml(c.urgency)}</dd>
+      <dt>Used fallback</dt><dd>${c.used_fallback ? "yes (provider error or unparseable response)" : "no"}</dd>
+    </dl>
+    <h3 class="section">Confidence: ${pct}% (auto-respond threshold: ${thresholdPct}%)</h3>
+    <div class="conf-bar-wrap" style="margin-bottom:18px;">
+      <div class="conf-bar-fill" style="width:${pct}%;"></div>
+      <div class="conf-threshold" style="left:${thresholdPct}%;"></div>
+    </div>
+    <h3 class="section">Alternatives considered</h3>
+    <ul style="font-size:13.5px; margin:0; padding-left:18px;">${alts}</ul>
+  `;
+}
+
+function renderRetrieval(body, r) {
+  const passages = r.retrieval.passages || [];
+  const cards = passages.length
+    ? passages.map(p => `
+        <div class="passage-card">
+          <div class="head"><span class="doc-id">${escapeHtml(p.doc_id)}</span><span class="score">score ${p.score.toFixed(3)}</span></div>
+          <div style="font-size:12.5px; color:var(--muted); margin-bottom:4px;">${escapeHtml(p.title)}</div>
+          <div class="text">${escapeHtml(p.chunk_text)}</div>
+        </div>`).join("")
+    : `<div class="empty-state">No passage cleared the relevance threshold, so this ticket has no grounding.</div>`;
+  body.innerHTML = `
+    <h3 class="section">Query</h3>
+    <div style="font-size:13px; color:var(--muted); margin-bottom:16px;">${escapeHtml(r.retrieval.query)}</div>
+    <h3 class="section">Retrieved passages (${passages.length})</h3>
+    ${cards}
+  `;
+}
+
+function renderRouting(body, r) {
+  const rt = r.routing;
+  body.innerHTML = `
+    <h3 class="section">Decision</h3>
+    <div style="margin-bottom:18px;"><span class="action-pill ${escapeHtml(rt.action)}">${escapeHtml(rt.action).replace("_"," ")}</span></div>
+    <dl class="kv">
+      <dt>Threshold applied</dt><dd>${(rt.threshold_applied*100).toFixed(0)}%</dd>
+      <dt>Forced</dt><dd>${rt.forced ? "yes, an always-escalate rule fired: confidence was not the deciding factor" : "no, this was the ordinary confidence/grounding decision"}</dd>
+    </dl>
+    <h3 class="section">Reason</h3>
+    <div class="answer-box">${escapeHtml(rt.reason)}</div>
+  `;
+}
+
+function renderGeneration(body, r) {
+  const g = r.generation;
+  if (!g) {
+    body.innerHTML = `<div class="empty-state">Generation was never reached: the router sent this ticket straight to escalation.</div>`;
+    return;
+  }
+  const citations = (g.citations || []).map(c => `<span class="citation-chip">${escapeHtml(c)}</span>`).join("") || "<span style=\"color:var(--muted);\">none</span>";
+  body.innerHTML = `
+    <h3 class="section">Outcome</h3>
+    <dl class="kv">
+      <dt>Declined to answer</dt><dd>${g.declined ? "yes" : "no"}</dd>
+      ${g.declined ? `<dt>Reason</dt><dd>${escapeHtml(g.declined_reason)}</dd>` : ""}
+    </dl>
+    <h3 class="section">Draft answer</h3>
+    <div class="answer-box">${escapeHtml(g.answer_text || "(none, declined)")}</div>
+    <h3 class="section">Citations</h3>
+    <div>${citations}</div>
+  `;
+}
+
+function renderGuardrails(body, r) {
+  const v = r.validation;
+  if (!v) {
+    body.innerHTML = `<div class="empty-state">Guardrails never ran: this ticket did not reach an auto-respond draft.</div>`;
+    return;
+  }
+  const rows = (v.findings || []).map(f => `
+    <tr>
+      <td><code class="mono">${escapeHtml(f.name)}</code></td>
+      <td class="${f.passed ? 'pass' : 'fail'}">${f.passed ? "PASS" : "FAIL"}</td>
+      <td>${escapeHtml(f.detail || "-")}</td>
+    </tr>`).join("");
+  body.innerHTML = `
+    <h3 class="section">Overall</h3>
+    <div style="margin-bottom:18px;"><span class="action-pill ${v.blocked ? 'block' : 'auto_respond'}">${v.blocked ? "blocked" : "passed"}</span></div>
+    <h3 class="section">Findings</h3>
+    <table class="data">
+      <thead><tr><th>Guardrail</th><th>Result</th><th>Detail</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+async function renderDecisionLog(body, r) {
+  body.innerHTML = `<div class="empty-state">Loading decision log...</div>`;
+  const ticketId = r.ticket_id;
+  if (!decisionLogCache[ticketId]) {
+    try {
+      const resp = await fetch(API + "/decisions/" + encodeURIComponent(ticketId));
+      decisionLogCache[ticketId] = resp.ok ? await resp.json() : [];
+    } catch (e) {
+      decisionLogCache[ticketId] = [];
+    }
+  }
+  // Guard against the user having switched tabs/tickets while this was loading.
+  if (activeTicketId !== ticketId || activeTab !== "log") return;
+
+  const rows = decisionLogCache[ticketId];
+  if (!rows.length) {
+    body.innerHTML = `<div class="empty-state">No decision log rows found for this ticket.</div>`;
+    return;
+  }
+  const trs = rows.map(row => `
+    <tr>
+      <td><code class="mono">${escapeHtml(row.stage)}</code></td>
+      <td>${escapeHtml(row.action_taken)}</td>
+      <td>${escapeHtml(row.reason)}</td>
+    </tr>`).join("");
+  body.innerHTML = `
+    <h3 class="section">Every stage this ticket passed through, exactly as written to the decision log</h3>
+    <table class="data">
+      <thead><tr><th>Stage</th><th>Action taken</th><th>Reason</th></tr></thead>
+      <tbody>${trs}</tbody>
+    </table>
+  `;
+}
+</script>
+
+</body>
+</html>
