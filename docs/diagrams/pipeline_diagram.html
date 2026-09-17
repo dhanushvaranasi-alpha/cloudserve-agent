@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CloudServe support pipeline</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  figure {
+    margin: 0;
+    padding: 28px 24px 20px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  figcaption {
+    max-width: 1660px;
+    margin: 14px auto 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #5b6270;
+  }
+  figcaption b { color: #1f2430; }
+</style>
+</head>
+<body>
+<figure>
+<svg viewBox="0 0 1660 1010" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CloudServe support pipeline: a ticket moves through ingest, classify and retrieve, then four routing checks that either send it to a human agent (provider unavailable, an always-escalate intent, no grounding passage, or low confidence) or auto-respond through generate and validate; every stage writes to the decision log, and the provider-unavailable check is marked as the branch that fired for 32 percent of the live evaluation run.">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2430"/>
+  </marker>
+  <marker id="arrow-alert" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#b3261e"/>
+  </marker>
+  <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b6270"/>
+  </marker>
+</defs>
+<rect x="0" y="0" width="1660" height="1010" fill="white"/>
+<text x="20" y="26" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="16" fill="#1f2430">CloudServe support pipeline: request flow and the routing decision</text>
+<rect x="20" y="50" width="150" height="68" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="95.0" y="70.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">TICKET</text>
+<text x="95.0" y="87.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">4 channels, normalized on entry</text>
+<rect x="210" y="50" width="160" height="68" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="290.0" y="70.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">INGEST</text>
+<text x="290.0" y="87.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">src/ingest/ingest.py</text>
+<rect x="410" y="50" width="170" height="68" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="495.0" y="70.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">CLASSIFY</text>
+<text x="495.0" y="87.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">22 intents + confidence</text>
+<rect x="457.2" y="39" width="116.8" height="18" rx="9" fill="#1f2430"/>
+<text x="515.6" y="52" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="white">retry x3 (A11)</text>
+<rect x="620" y="50" width="170" height="68" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="705.0" y="70.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">RETRIEVE</text>
+<text x="705.0" y="87.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">29-doc corpus, ranked passages</text>
+<line x1="170" y1="84.0" x2="210" y2="84.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="370" y1="84.0" x2="410" y2="84.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="580" y1="84.0" x2="620" y2="84.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="600.0" y="77.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">intent + confidence</text>
+<line x1="705.0" y1="118" x2="705.0" y2="187.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="689.0" y="140" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">ranked passages,</text>
+<text x="689.0" y="154" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">or none</text>
+<text x="30" y="173.0" text-anchor="start" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="11.5" fill="#5b6270">ROUTE (src/route/router.py) -- deterministic, every branch logged</text>
+<polygon points="705,187.0 855.0,235 705,283.0 555.0,235" fill="#fdeceb" stroke="#b3261e" stroke-width="1.8"/>
+<text x="705" y="231" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">Provider unavailable or</text>
+<text x="705" y="247" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">response unparseable?</text>
+<polygon points="705,352.0 855.0,400 705,448.0 555.0,400" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="705" y="404" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">Always-escalate intent?</text>
+<text x="705" y="468.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#5b6270">compliance / security_incident / feature_request / unclear_request</text>
+<polygon points="705,517.0 855.0,565 705,613.0 555.0,565" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="705" y="561" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">No passage above the 0.35</text>
+<text x="705" y="577" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">relevance threshold?</text>
+<polygon points="705,682.0 855.0,730 705,778.0 555.0,730" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="705" y="726" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">Confidence below</text>
+<text x="705" y="742" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="600" font-size="12" fill="#1f2430">CONFIDENCE_THRESHOLD (0.80)?</text>
+<line x1="705" y1="283.0" x2="705" y2="352.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="719" y="321.5" text-anchor="start" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">no</text>
+<line x1="705" y1="448.0" x2="705" y2="517.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="719" y="486.5" text-anchor="start" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">no</text>
+<line x1="705" y1="613.0" x2="705" y2="682.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="719" y="651.5" text-anchor="start" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">no (passage found)</text>
+<rect x="60" y="187.0" width="260" height="591.0" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="190.0" y="462.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">ESCALATE</text>
+<text x="190.0" y="479.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">forced or low-confidence</text>
+<text x="190.0" y="494.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">-&gt; human agent, with the draft context (FR-11)</text>
+<line x1="555.0" y1="235" x2="320" y2="235" stroke="#b3261e" stroke-width="1.6" marker-end="url(#arrow-alert)"/>
+<text x="437.5" y="228" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#b3261e">yes -- provider/parse failure</text>
+<line x1="555.0" y1="400" x2="320" y2="400" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="437.5" y="393" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">yes -- always-escalate class</text>
+<line x1="555.0" y1="565" x2="320" y2="565" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="437.5" y="558" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">yes -- nothing to ground in</text>
+<line x1="555.0" y1="730" x2="320" y2="730" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="437.5" y="723" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">yes -- below threshold</text>
+<line x1="190.0" y1="778.0" x2="190.0" y2="838.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="60" y="838.0" width="260" height="90" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="190.0" y="863.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">HUMAN AGENT</text>
+<text x="190.0" y="880.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">Tier 2 queue</text>
+<text x="190.0" y="895.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">summary + sources + confidence gap</text>
+<line x1="855.0" y1="730" x2="1120" y2="730" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="987.5" y="723" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">no -- AUTO_RESPOND</text>
+<rect x="1120" y="695.0" width="150" height="70" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="1195.0" y="716.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">GENERATE</text>
+<text x="1195.0" y="733.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">grounded answer + citations</text>
+<rect x="1147.2" y="684.0" width="116.8" height="18" rx="9" fill="#1f2430"/>
+<text x="1205.6000000000001" y="697.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="white">retry x3 (A11)</text>
+<rect x="1320" y="695.0" width="150" height="70" rx="7" fill="#f5f6f8" stroke="#1f2430" stroke-width="1.8"/>
+<text x="1395.0" y="716.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="14" fill="#1f2430">VALIDATE</text>
+<text x="1395.0" y="733.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">5 blocking guardrails</text>
+<rect x="1433.6" y="684.0" width="30.4" height="18" rx="9" fill="#1f2430"/>
+<text x="1448.8" y="697.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="white">A7</text>
+<rect x="1520" y="695.0" width="100" height="70" rx="7" fill="#eaf7ef" stroke="#1f7a4d" stroke-width="1.8"/>
+<text x="1570.0" y="716.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="13" fill="#1f2430">SENT</text>
+<text x="1570.0" y="733.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">to customer</text>
+<line x1="1270" y1="730.0" x2="1320" y2="730.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="1295.0" y="723.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">draft + citations</text>
+<line x1="1470" y1="730.0" x2="1520" y2="730.0" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="1495.0" y="723.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">no guardrail hit</text>
+<path d="M 1395.0 765.0 C 1395.0 940, 360 940, 320 883.0" fill="none" stroke="#1f2430" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="728.5" y="852.16" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#5b6270">guardrail blocked -&gt; escalate</text>
+<rect x="900" y="85" width="420" height="92" rx="6" fill="#fdeceb" stroke="#b3261e" stroke-width="1.4"/>
+<text x="914" y="107" font-family="Helvetica,Arial,sans-serif" font-weight="700" font-size="12" fill="#b3261e">The branch that fired for 32.2% of the live run</text>
+<text x="914" y="126" font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#b3261e">161 of 500 tickets forced through here -- Groq's</text>
+<text x="914" y="143" font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#b3261e">daily quota was exhausted partway through the run,</text>
+<text x="914" y="160" font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#b3261e">not a defect in the routing logic itself.</text>
+<path d="M 900 167 C 810 197, 825 127.0, 745 185.0" fill="none" stroke="#b3261e" stroke-width="1.6" marker-end="url(#arrow-alert)"/>
+<rect x="20" y="970" width="1620" height="30" rx="5" fill="#eef0f3" stroke="#1f2430" stroke-width="1.2"/>
+<text x="830.0" y="990" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#1f2430">decision_log.db -- one row per classify / retrieve / route / generate / validate decision, every run (FR-10)</text>
+<line x1="495.0" y1="118" x2="495.0" y2="970" stroke="#5b6270" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="705.0" y1="118" x2="705.0" y2="970" stroke="#5b6270" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="1195.0" y1="765.0" x2="1195.0" y2="970" stroke="#5b6270" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="1395.0" y1="765.0" x2="1395.0" y2="970" stroke="#5b6270" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="230.0" y1="928.0" x2="230.0" y2="970" stroke="#5b6270" stroke-width="1" stroke-dasharray="3,3"/>
+</svg>
+<figcaption>
+  <b>Figure.</b> The CloudServe support pipeline's request flow and routing decision
+  (src/pipeline.py, src/route/router.py). Every ticket is classified, retrieved against,
+  and routed through four deterministic checks; the highlighted check is the one that
+  forced 161 of 500 tickets in the live evaluation run to escalate, because Groq's free-tier
+  daily quota was exhausted partway through the run -- not a routing defect.
+</figcaption>
+</figure>
+</body>
+</html>
