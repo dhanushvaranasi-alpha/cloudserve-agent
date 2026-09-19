@@ -272,7 +272,7 @@ once even though retrieval runs locally after that.
 **Start the API and the demo UI:**
 
 ```bash
-uvicorn src.api.main:app --reload --port 8000
+python -m uvicorn src.api.main:app --reload --port 8000
 ```
 
 Open `http://localhost:8000/` for a chat-style demo page with tabs for
