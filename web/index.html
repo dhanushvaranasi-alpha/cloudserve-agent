@@ -71,11 +71,13 @@
   .badge.escalate { background: var(--warn-bg); color: var(--warn); }
   .badge.block { background: var(--bad-bg); color: var(--bad); }
   .badge.error { background: var(--bad-bg); color: var(--bad); }
-  .presets { padding: 10px 14px; border-top: 1px solid var(--border); }
-  .presets .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-  .preset-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
-  .preset-btn { font-size: 12px; padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; }
-  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .spinner {
+    display: inline-block; width: 13px; height: 13px; vertical-align: -2px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .7s linear infinite; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .bubble.system.pending { display: flex; align-items: center; color: var(--muted); }
   form.composer { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
   .row { display: flex; gap: 8px; }
   .row select, .row input { font-size: 12.5px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; flex: 1; }
@@ -142,16 +144,7 @@
   <!-- LEFT: chat / ticket submission -->
   <div class="panel">
     <div class="chat-log" id="chatLog">
-      <div class="empty-state">Submit a ticket below, or try one of the preset scenarios, to see how the pipeline handles it.</div>
-    </div>
-
-    <div class="presets">
-      <div class="label">Preset scenarios</div>
-      <div class="preset-btns">
-        <button class="preset-btn" onclick="usePreset('grounded')">Grounded question (auto-respond)</button>
-        <button class="preset-btn" onclick="usePreset('security')">Security incident (forced escalate)</button>
-        <button class="preset-btn" onclick="usePreset('vague')">Vague request (low confidence)</button>
-      </div>
+      <div class="empty-state">Submit a ticket below to see how the pipeline handles it.</div>
     </div>
 
     <form class="composer" id="composer" onsubmit="return handleSubmit(event)">
@@ -202,30 +195,6 @@ const decisionLogCache = {}; // ticket_id -> rows
 let activeTicketId = null;
 let activeTab = "overview";
 
-const PRESETS = {
-  grounded: {
-    channel: "chat", customerTier: "business", subject: "",
-    body: "Are the search endpoints limited differently from the rest? Our read traffic is fine but search is being rejected constantly."
-  },
-  security: {
-    channel: "email", customerTier: "enterprise", subject: "Unauthorized API activity",
-    body: "We are seeing API calls from an IP address we do not recognize, and one of our team members says they did not make these requests. We think our account may be compromised."
-  },
-  vague: {
-    channel: "forum", customerTier: "standard", subject: "",
-    body: "it's broken again, please help"
-  }
-};
-
-function usePreset(key) {
-  const p = PRESETS[key];
-  document.getElementById("channel").value = p.channel;
-  document.getElementById("customerTier").value = p.customerTier;
-  document.getElementById("subject").value = p.subject;
-  document.getElementById("body").value = p.body;
-  document.getElementById("body").focus();
-}
-
 function escapeHtml(s) {
   if (s === null || s === undefined) return "";
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -253,6 +222,7 @@ async function handleSubmit(evt) {
   };
 
   addTicketBubble(ticketId, payload);
+  addPendingBubble(ticketId);
   setBusy(true, "Running the pipeline...");
 
   try {
@@ -261,6 +231,7 @@ async function handleSubmit(evt) {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload)
     });
+    removePendingBubble(ticketId);
     if (!resp.ok) {
       const err = await resp.text();
       addSystemBubble(ticketId, null, err);
@@ -273,6 +244,7 @@ async function handleSubmit(evt) {
     selectTicket(ticketId);
     setBusy(false, "");
   } catch (e) {
+    removePendingBubble(ticketId);
     addSystemBubble(ticketId, null, String(e));
     setBusy(false, "Could not reach the server.");
   }
@@ -284,7 +256,27 @@ async function handleSubmit(evt) {
 
 function setBusy(busy, msg) {
   document.getElementById("sendBtn").disabled = busy;
-  document.getElementById("statusLine").textContent = msg || "";
+  const statusLine = document.getElementById("statusLine");
+  if (busy && msg) {
+    statusLine.innerHTML = `<span class="spinner"></span>${escapeHtml(msg)}`;
+  } else {
+    statusLine.textContent = msg || "";
+  }
+}
+
+function addPendingBubble(ticketId) {
+  const log = document.getElementById("chatLog");
+  const div = document.createElement("div");
+  div.className = "bubble system pending";
+  div.id = "pending-" + ticketId;
+  div.innerHTML = `<span class="spinner"></span>Running the pipeline...`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function removePendingBubble(ticketId) {
+  const el = document.getElementById("pending-" + ticketId);
+  if (el) el.remove();
 }
 
 function addTicketBubble(ticketId, payload) {
